@@ -4,8 +4,19 @@ import datetime
 import time
 import pytz
 import hashlib
-import psycopg2 # Librería para conectar con Supabase
+import pandas as pd
+import plotly.graph_objects as go
 from streamlit.components.v1 import html as components_html
+
+try:
+    import psycopg2
+    DB_AVAILABLE = True
+except ImportError as e:
+    st.error(f"⚠️ Error al importar psycopg2: {e}")
+    st.info("💡 Asegúrate de tener 'packages.txt' con libpq-dev en tu repositorio")
+    DB_AVAILABLE = False
+    # Modo fallback sin BD
+    psycopg2 = None
 
 # ==========================================
 # 1. CONFIGURACIÓN Y ESTILO
