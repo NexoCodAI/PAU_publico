@@ -118,12 +118,21 @@ DEFAULT_SYLLABUS = {
 # 3. GESTIÓN DE BASE DE DATOS (SUPABASE) 
 # ========================================== 
 def get_db_connection():
-    if not DB_AVAILABLE:
-        return None
     try:
-        return psycopg2.connect(**st.secrets["supabase"])
+        # Intentamos conectar con los datos del secret
+        conn = psycopg2.connect(
+            host=st.secrets["supabase"]["host"],
+            user=st.secrets["supabase"]["user"],
+            password=st.secrets["supabase"]["password"],
+            dbname=st.secrets["supabase"]["dbname"],
+            port=st.secrets["supabase"]["port"],
+            connect_timeout=5
+        )
+        return conn
     except Exception as e:
-        st.error(f"⚠️ Error de conexión a Base de Datos: {e}")
+        # Si falla, mostramos el error técnico real para saber si es 
+        # la contraseña, el host o la red.
+        st.error(f"🚨 Error técnico real: {e}")
         return None
 
 def make_hashes(password):
