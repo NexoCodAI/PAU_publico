@@ -1,3 +1,5 @@
 streamlit
-pytz
 psycopg2-binary
+pytz
+pandas
+plotly
