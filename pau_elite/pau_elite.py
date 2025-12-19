@@ -73,13 +73,12 @@ class State(rx.State):
     new_note_text: str = ""
     search_query: str = ""
 
-    # --- COMPUTED VARS (Corrección Lógica) ---
+    # --- COMPUTED VARS ---
     
     @rx.var
     def tasks_due(self) -> list[dict]:
         """Filtra y devuelve SOLO las tareas que hay que hacer hoy."""
         today = str(datetime.date.today())
-        # Evita errores de compilación JS haciendo el filtrado en Python
         return [
             t for t in self.topics 
             if t["unlocked"] and t["next_review"] <= today
@@ -88,7 +87,8 @@ class State(rx.State):
     @rx.var
     def total_progress(self) -> int:
         """Calcula el % de maestría total."""
-        if not self.topics: return 0
+        if not self.topics: 
+            return 0
         total_levels = len(self.topics) * 5
         current_levels = sum(t["level"] for t in self.topics)
         return int((current_levels / total_levels) * 100) if total_levels > 0 else 0
@@ -101,7 +101,10 @@ class State(rx.State):
 
     def login(self):
         try:
-            res = self.supabase.auth.sign_in_with_password({"email": self.email, "password": self.password})
+            res = self.supabase.auth.sign_in_with_password({
+                "email": self.email, 
+                "password": self.password
+            })
             self.auth_token = res.session.access_token
             self.user_id = res.user.id
             self.is_logged_in = True
@@ -117,8 +120,8 @@ class State(rx.State):
         self.notes = []
 
     def check_initial_data(self):
-        # Evita error si no hay usuario logueado
-        if not self.user_id: return
+        if not self.user_id: 
+            return
         
         res = self.supabase.table("topics").select("id").eq("user_id", self.user_id).execute()
         if len(res.data) == 0:
@@ -137,7 +140,8 @@ class State(rx.State):
             self.supabase.table("topics").insert(bulk_data).execute()
 
     def load_data(self):
-        if not self.is_logged_in: return
+        if not self.is_logged_in: 
+            return
         t_res = self.supabase.table("topics").select("*").eq("user_id", self.user_id).order("id").execute()
         self.topics = t_res.data
         n_res = self.supabase.table("notes").select("*").eq("user_id", self.user_id).order("created_at", desc=True).execute()
@@ -153,14 +157,20 @@ class State(rx.State):
 
         b_type, b_name, end_h = "free", "⏳ Tiempo Libre", 0.0
 
-        if weekday in [0, 1, 2, 3]: # L-J
-            if 16.0 <= hour < 17.5: b_type, b_name, end_h = "science", "🔄 Tareas / Estudio", 17.5
-            elif 17.5 <= hour < 19.0: b_type, b_name, end_h = "gym", "🏋️ Gimnasio", 19.0
-            elif 19.0 <= hour < 20.5: b_type, b_name, end_h = "science", "🧪 Bloque Ciencia", 20.5
-            elif 21.5 <= hour < 23.0: b_type, b_name, end_h = "memory", "🧠 Bloque Memoria", 23.0
-            elif hour >= 23.0: b_type, b_name, end_h = "sleep", "😴 Dormir", 24.0
-        elif weekday == 5: # Sábado
-            if 9.5 <= hour < 13.5: b_type, b_name, end_h = "simulacro", "📝 SIMULACRO REAL", 13.5
+        if weekday in [0, 1, 2, 3]:  # L-J
+            if 16.0 <= hour < 17.5: 
+                b_type, b_name, end_h = "science", "🔄 Tareas / Estudio", 17.5
+            elif 17.5 <= hour < 19.0: 
+                b_type, b_name, end_h = "gym", "🏋️ Gimnasio", 19.0
+            elif 19.0 <= hour < 20.5: 
+                b_type, b_name, end_h = "science", "🧪 Bloque Ciencia", 20.5
+            elif 21.5 <= hour < 23.0: 
+                b_type, b_name, end_h = "memory", "🧠 Bloque Memoria", 23.0
+            elif hour >= 23.0: 
+                b_type, b_name, end_h = "sleep", "😴 Dormir", 24.0
+        elif weekday == 5:  # Sábado
+            if 9.5 <= hour < 13.5: 
+                b_type, b_name, end_h = "simulacro", "📝 SIMULACRO REAL", 13.5
         
         self.current_block_name = b_name
         self.current_block_type = b_type
@@ -182,9 +192,9 @@ class State(rx.State):
     # --- LOGICA DE REPASO ---
 
     def review_topic(self, topic_id: int, rating: str):
-        # Encontrar el índice local para actualización optimista o referencia
         topic_idx = next((i for i, t in enumerate(self.topics) if t["id"] == topic_id), -1)
-        if topic_idx == -1: return
+        if topic_idx == -1: 
+            return
 
         topic = self.topics[topic_idx]
         new_level = topic["level"]
@@ -214,7 +224,9 @@ class State(rx.State):
         self.load_data()
 
     def toggle_unlock(self, topic_id: int, current_val: bool):
-        self.supabase.table("topics").update({"unlocked": not current_val}).eq("id", topic_id).execute()
+        self.supabase.table("topics").update({
+            "unlocked": not current_val
+        }).eq("id", topic_id).execute()
         self.load_data()
 
     def add_note(self):
@@ -223,7 +235,10 @@ class State(rx.State):
             return
 
         if self.new_note_text:
-            self.supabase.table("notes").insert({"user_id": self.user_id, "text": self.new_note_text}).execute()
+            self.supabase.table("notes").insert({
+                "user_id": self.user_id, 
+                "text": self.new_note_text
+            }).execute()
             self.new_note_text = ""
             self.load_data()
     
@@ -237,20 +252,40 @@ class State(rx.State):
         return rx.window_alert("¡Bienvenido al plan Elite! (Simulación)")
 
 # ==========================================
-# 🎨 UI COMPONENTS (Modernos)
+# 🎨 UI COMPONENTS
 # ==========================================
 
 def login_page():
     return rx.center(
         rx.card(
             rx.vstack(
-                # CORREGIDO: weight="bold" en lugar de "black"
                 rx.heading("PAU Elite", size="8", weight="bold", color_scheme="tomato"),
                 rx.text("Tu segundo cerebro para Selectividad", color="gray", size="2"),
-                rx.input(placeholder="Email", on_change=State.set_email, size="3", width="100%"),
-                rx.input(placeholder="Password", type="password", on_change=State.set_password, size="3", width="100%"),
-                rx.button("Iniciar Sesión", on_click=State.login, width="100%", size="3", variant="solid"),
-                rx.text("Accede con tus credenciales de Supabase", font_size="xs", color="gray"),
+                rx.input(
+                    placeholder="Email", 
+                    on_change=State.set_email, 
+                    size="3", 
+                    width="100%"
+                ),
+                rx.input(
+                    placeholder="Password", 
+                    type="password", 
+                    on_change=State.set_password, 
+                    size="3", 
+                    width="100%"
+                ),
+                rx.button(
+                    "Iniciar Sesión", 
+                    on_click=State.login, 
+                    width="100%", 
+                    size="3", 
+                    variant="solid"
+                ),
+                rx.text(
+                    "Accede con tus credenciales de Supabase", 
+                    font_size="xs", 
+                    color="gray"
+                ),
                 spacing="4",
                 align_items="center"
             ),
@@ -265,7 +300,12 @@ def login_page():
 def stat_card(label: str, value: str, icon: str, color: str):
     return rx.card(
         rx.hstack(
-            rx.avatar(fallback=icon, variant="solid", color_scheme=color, size="4"),
+            rx.avatar(
+                fallback=icon, 
+                variant="solid", 
+                color_scheme=color, 
+                size="4"
+            ),
             rx.vstack(
                 rx.text(label, size="1", weight="bold", color="gray"),
                 rx.heading(value, size="5"),
@@ -284,14 +324,36 @@ def task_card(topic: dict):
                 rx.spacer(),
                 rx.badge(f"Nivel {topic['level']}", variant="outline")
             ),
-            # CORREGIDO: weight="medium" es válido
             rx.heading(topic["name"], size="4", weight="medium"),
-            rx.progress(value=topic["level"]*20, width="100%", color_scheme="tomato", height="8px"),
+            rx.progress(
+                value=topic["level"] * rx.Var.create(20), 
+                width="100%", 
+                color_scheme="tomato", 
+                height="8px"
+            ),
             rx.divider(),
             rx.hstack(
-                rx.button("Fácil", on_click=lambda: State.review_topic(topic["id"], "ok"), flex="1", color_scheme="grass", variant="soft"),
-                rx.button("Regular", on_click=lambda: State.review_topic(topic["id"], "mid"), flex="1", color_scheme="amber", variant="soft"),
-                rx.button("Difícil", on_click=lambda: State.review_topic(topic["id"], "bad"), flex="1", color_scheme="tomato", variant="soft"),
+                rx.button(
+                    "Fácil", 
+                    on_click=lambda: State.review_topic(topic["id"], "ok"), 
+                    flex="1", 
+                    color_scheme="grass", 
+                    variant="soft"
+                ),
+                rx.button(
+                    "Regular", 
+                    on_click=lambda: State.review_topic(topic["id"], "mid"), 
+                    flex="1", 
+                    color_scheme="amber", 
+                    variant="soft"
+                ),
+                rx.button(
+                    "Difícil", 
+                    on_click=lambda: State.review_topic(topic["id"], "bad"), 
+                    flex="1", 
+                    color_scheme="tomato", 
+                    variant="soft"
+                ),
                 width="100%",
                 spacing="3"
             ),
@@ -329,7 +391,6 @@ def main_dashboard():
     return rx.hstack(
         # --- SIDEBAR ---
         rx.vstack(
-            # CORREGIDO: Eliminado weight="black", usamos "bold"
             rx.heading("PAU ELITE", size="6", weight="bold", letter_spacing="-1px"),
             rx.cond(
                 State.is_premium,
@@ -341,9 +402,19 @@ def main_dashboard():
             # Reloj Widget
             rx.card(
                 rx.vstack(
-                    rx.text("OBJETIVO ACTUAL", font_size="0.65em", weight="bold", color="gray"),
+                    rx.text(
+                        "OBJETIVO ACTUAL", 
+                        font_size="0.65em", 
+                        weight="bold", 
+                        color="gray"
+                    ),
                     rx.text(State.current_block_name, weight="bold", size="3"),
-                    rx.heading(State.time_remaining, size="7", color_scheme="tomato", font_variant_numeric="tabular-nums"),
+                    rx.heading(
+                        State.time_remaining, 
+                        size="7", 
+                        color_scheme="tomato", 
+                        font_variant_numeric="tabular-nums"
+                    ),
                     rx.text(State.target_hour_display, size="1", color="gray"),
                     align_items="center",
                     spacing="1"
@@ -353,7 +424,13 @@ def main_dashboard():
             ),
             
             rx.spacer(),
-            rx.button("Cerrar Sesión", on_click=State.logout, variant="ghost", color_scheme="gray", width="100%"),
+            rx.button(
+                "Cerrar Sesión", 
+                on_click=State.logout, 
+                variant="ghost", 
+                color_scheme="gray", 
+                width="100%"
+            ),
             width="280px",
             height="100vh",
             padding="2em",
@@ -395,7 +472,10 @@ def main_dashboard():
                                 rx.card(
                                     rx.vstack(
                                         rx.heading("¡Todo limpio!", size="6"), 
-                                        rx.text("No tienes repasos pendientes para hoy.", color="gray"),
+                                        rx.text(
+                                            "No tienes repasos pendientes para hoy.", 
+                                            color="gray"
+                                        ),
                                         align_items="center", 
                                         padding="2em"
                                     ),
@@ -413,7 +493,11 @@ def main_dashboard():
                     rx.tabs.content(
                         rx.vstack(
                             rx.heading("Gestión del Temario", size="5"),
-                            rx.input(placeholder="Filtrar temas...", on_change=State.set_search_query, variant="soft"),
+                            rx.input(
+                                placeholder="Filtrar temas...", 
+                                on_change=State.set_search_query, 
+                                variant="soft"
+                            ),
                             rx.scroll_area(
                                 rx.vstack(
                                     rx.foreach(State.topics, syllabus_row),
