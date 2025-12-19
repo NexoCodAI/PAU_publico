@@ -1,0 +1,4 @@
+reflex==0.4.6  (o la versión que tengas)
+supabase==2.4.0
+python-dotenv==1.0.1
+pytz==2024.1
