@@ -73,13 +73,13 @@ class State(rx.State):
     new_note_text: str = ""
     search_query: str = ""
 
-    # --- COMPUTED VARS (LA SOLUCIÓN AL ERROR) ---
+    # --- COMPUTED VARS (Corrección Lógica) ---
     
     @rx.var
     def tasks_due(self) -> list[dict]:
         """Filtra y devuelve SOLO las tareas que hay que hacer hoy."""
         today = str(datetime.date.today())
-        # Esta lógica se ejecuta en Python (Backend), evitando el error en el Frontend
+        # Evita errores de compilación JS haciendo el filtrado en Python
         return [
             t for t in self.topics 
             if t["unlocked"] and t["next_review"] <= today
@@ -117,6 +117,9 @@ class State(rx.State):
         self.notes = []
 
     def check_initial_data(self):
+        # Evita error si no hay usuario logueado
+        if not self.user_id: return
+        
         res = self.supabase.table("topics").select("id").eq("user_id", self.user_id).execute()
         if len(res.data) == 0:
             bulk_data = []
@@ -179,6 +182,7 @@ class State(rx.State):
     # --- LOGICA DE REPASO ---
 
     def review_topic(self, topic_id: int, rating: str):
+        # Encontrar el índice local para actualización optimista o referencia
         topic_idx = next((i for i, t in enumerate(self.topics) if t["id"] == topic_id), -1)
         if topic_idx == -1: return
 
@@ -195,6 +199,9 @@ class State(rx.State):
             next_rev = today + datetime.timedelta(days=days)
         elif rating == "bad":
             new_level = 1
+            days = 1
+            next_rev = today + datetime.timedelta(days=days)
+        else:
             days = 1
             next_rev = today + datetime.timedelta(days=days)
             
@@ -225,7 +232,7 @@ class State(rx.State):
         self.load_data()
 
     def upgrade_to_premium(self):
-        self.is_premium = True # Simulación
+        self.is_premium = True 
         self.show_upgrade_dialog = False
         return rx.window_alert("¡Bienvenido al plan Elite! (Simulación)")
 
@@ -237,6 +244,7 @@ def login_page():
     return rx.center(
         rx.card(
             rx.vstack(
+                # CORREGIDO: weight="bold" en lugar de "black"
                 rx.heading("PAU Elite", size="8", weight="bold", color_scheme="tomato"),
                 rx.text("Tu segundo cerebro para Selectividad", color="gray", size="2"),
                 rx.input(placeholder="Email", on_change=State.set_email, size="3", width="100%"),
@@ -276,6 +284,7 @@ def task_card(topic: dict):
                 rx.spacer(),
                 rx.badge(f"Nivel {topic['level']}", variant="outline")
             ),
+            # CORREGIDO: weight="medium" es válido
             rx.heading(topic["name"], size="4", weight="medium"),
             rx.progress(value=topic["level"]*20, width="100%", color_scheme="tomato", height="8px"),
             rx.divider(),
@@ -320,7 +329,8 @@ def main_dashboard():
     return rx.hstack(
         # --- SIDEBAR ---
         rx.vstack(
-            rx.heading("PAU ELITE", size="6", weight="black", letter_spacing="-1px"),
+            # CORREGIDO: Eliminado weight="black", usamos "bold"
+            rx.heading("PAU ELITE", size="6", weight="bold", letter_spacing="-1px"),
             rx.cond(
                 State.is_premium,
                 rx.badge("PLAN ELITE", color_scheme="gold", variant="solid"),
@@ -375,7 +385,7 @@ def main_dashboard():
                         size="2"
                     ),
                     
-                    # TAB 1: AGENDA (Fixed Logic)
+                    # TAB 1: AGENDA
                     rx.tabs.content(
                         rx.vstack(
                             rx.heading("Tareas Prioritarias", size="5", margin_y="0.5em"),
@@ -418,7 +428,7 @@ def main_dashboard():
                         padding_top="1.5em"
                     ),
                     
-                    # TAB 3: NOTAS (Freemium Check)
+                    # TAB 3: NOTAS
                     rx.tabs.content(
                         rx.vstack(
                             rx.heading("Cuaderno de Notas", size="5"),
