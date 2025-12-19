@@ -1,6 +1,6 @@
 reflex==0.8.23
-supabase==2.10.0
-python-dotenv==1.0.1
-pytz==2024.2
-pydantic==2.9.2
-sqlmodel==0.0.22
+supabase
+python-dotenv
+pytz
+sqlmodel>=0.0.27
+pydantic>=2.9.2
