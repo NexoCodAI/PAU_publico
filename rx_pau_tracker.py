@@ -3,14 +3,12 @@ import datetime
 import pytz
 import os
 from supabase import create_client, Client
+from dotenv import load_dotenv
 
-# ==========================================
-# 1. CONFIGURACIÓN Y CONSTANTES
-# ==========================================
+load_dotenv() # Carga el archivo .env
 
-# ⚠️ REEMPLAZA ESTO CON TUS CREDENCIALES DE SUPABASE
-SUPABASE_URL = "https://pmlwtybjypcxmuvojbkj.supabase.co"
-SUPABASE_KEY = "Tesla2025"
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
 # Configuración del Syllabus (Copiado de tu script original)
 DEFAULT_SYLLABUS = {
