@@ -1,4 +1,6 @@
-reflex==0.4.6  
-supabase==2.4.0
+reflex==0.6.4
+supabase==2.10.0
 python-dotenv==1.0.1
-pytz==2024.1
+pytz==2024.2
+pydantic==2.9.2
+sqlmodel==0.0.22
