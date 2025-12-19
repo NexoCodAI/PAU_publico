@@ -1,0 +1,11 @@
+[phases.setup]
+nixPkgs = ["python311", "unzip", "nodejs"]
+
+[phases.build]
+cmds = [
+    "pip install -r requirements.txt",
+    "reflex init"
+]
+
+[start]
+cmd = "reflex run --env prod --backend-only & reflex run --env prod --frontend-only"
