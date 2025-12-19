@@ -1,5 +1,0 @@
-[phases.setup]
-nixPkgs = ["...", "unzip"]
-
-[phases.build]
-cmds = ["pip install -r requirements.txt", "reflex export --frontend-only", "reflex init"]
