@@ -317,6 +317,24 @@ def stat_card(label: str, value: str, icon: str, color: str):
     )
 
 def task_card(topic: dict):
+    # Calculamos el valor del progreso usando cond para cada nivel
+    progress_value = rx.cond(
+        topic["level"] == 0, 0,
+        rx.cond(
+            topic["level"] == 1, 20,
+            rx.cond(
+                topic["level"] == 2, 40,
+                rx.cond(
+                    topic["level"] == 3, 60,
+                    rx.cond(
+                        topic["level"] == 4, 80,
+                        100  # nivel 5
+                    )
+                )
+            )
+        )
+    )
+    
     return rx.card(
         rx.vstack(
             rx.hstack(
@@ -326,7 +344,7 @@ def task_card(topic: dict):
             ),
             rx.heading(topic["name"], size="4", weight="medium"),
             rx.progress(
-                value=topic["level"] * rx.Var.create(20), 
+                value=progress_value, 
                 width="100%", 
                 color_scheme="tomato", 
                 height="8px"
