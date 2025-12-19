@@ -9,8 +9,8 @@ from supabase import create_client, Client
 # ==========================================
 
 # ⚠️ REEMPLAZA ESTO CON TUS CREDENCIALES DE SUPABASE
-SUPABASE_URL = "TU_URL_DE_SUPABASE_AQUI"
-SUPABASE_KEY = "TU_KEY_ANON_DE_SUPABASE_AQUI"
+SUPABASE_URL = "https://pmlwtybjypcxmuvojbkj.supabase.co"
+SUPABASE_KEY = "Tesla2025"
 
 # Configuración del Syllabus (Copiado de tu script original)
 DEFAULT_SYLLABUS = {
