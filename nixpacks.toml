@@ -1,11 +1,11 @@
 [phases.setup]
-nixPkgs = ["python311", "unzip", "nodejs_20"]
+nixPkgs = ["python311", "unzip"]
 
 [phases.install]
-cmds = ["python -m venv .venv", ". .venv/bin/activate && pip install -r requirements.txt"]
+cmds = ["pip install -r requirements.txt"]
 
 [phases.build]
-cmds = [". .venv/bin/activate && reflex init"]
+cmds = ["reflex init"]
 
 [start]
-cmd = ". .venv/bin/activate && reflex run --env prod"
+cmd = "python -m reflex run --env prod --frontend-only & python -m reflex run --env prod --backend-only"
